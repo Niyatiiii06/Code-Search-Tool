@@ -42,6 +42,18 @@ def search_code(project_path, function_name):
                                 "line": node.lineno,
                                 "code": f"def {node.name}"
                             })
+                    elif isinstance(node, ast.Call):
+
+                        if isinstance(node.func, ast.Name):
+
+                            if node.func.id == function_name:
+
+                                results.append({
+                                    "type": "CALL",
+                                    "file": filepath,
+                                    "line": node.lineno,
+                                    "code": f"{node.func.id}()"
+                                })
 
     return results
 
