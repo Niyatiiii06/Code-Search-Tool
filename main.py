@@ -8,6 +8,24 @@ IGNORED_DIRS = {
     "node_modules"
 }
 
+def find_calls(tree, function_name):
+    calls = []
+    for node in ast.walk(tree):
+        if isinstance(node, ast.FunctionDef):
+            current_function = node.name
+
+            for child in ast.walk(node):
+                if isinstance(child, ast.Call):
+                    if isinstance(child.func, ast.Name):
+                        if child.func.id == function_name:
+
+                            calls.append({
+                                "caller": current_function,
+                                "line": child.lineno
+                            })
+
+    return calls
+
 def search_code(project_path, function_name):
     results = []
     for root, dirs, files in os.walk(project_path):
@@ -29,6 +47,17 @@ def search_code(project_path, function_name):
 
             except SyntaxError:
                 continue
+
+            calls = find_calls(tree, function_name)
+
+            for call in calls:
+
+                results.append({
+                    "type": "CALLED_BY",
+                    "file": filepath,
+                    "line": call["line"],
+                    "code": f"called by {call['caller']}()"
+                })
 
             for node in ast.walk(tree):
                 # Function definition
