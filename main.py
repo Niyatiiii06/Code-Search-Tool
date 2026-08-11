@@ -11,20 +11,32 @@ def search_code(project_path, function_name):
                     lines = f.readlines()
                 for line_no, line in enumerate(lines, start=1):
 
-                    if f"def {function_name}" in line:
-                        results.append(
-                            f"DEFINITION → {filepath}:{line_no}"
-                        )
+                    if f"def {function_name}(" in line:
+
+                        results.append({
+                            "type": "DEFINITION",
+                            "file": filepath,
+                            "line": line_no,
+                            "code": line.strip()
+                        })
 
                     elif f"import {function_name}" in line:
-                        results.append(
-                            f"IMPORT → {filepath}:{line_no}"
-                        )
+
+                        results.append({
+                            "type": "IMPORT",
+                            "file": filepath,
+                            "line": line_no,
+                            "code": line.strip()
+                        })
 
                     elif f"{function_name}(" in line:
-                        results.append(
-                            f"CALL → {filepath}:{line_no}"
-                        )
+
+                        results.append({
+                            "type": "CALL",
+                            "file": filepath,
+                            "line": line_no,
+                            "code": line.strip()
+                        })
     return results
 
 
@@ -33,4 +45,8 @@ function_name = input("Enter function name: ")
 results = search_code(project_path, function_name)
 
 for result in results:
-    print(result)
+    print(
+        f"{result['type']} → "
+        f"{result['file']}:{result['line']} "
+        f"→ {result['code']}"
+    )
