@@ -10,63 +10,80 @@ IGNORED_DIRS = {
 
 def search_code(project_path, function_name):
     results = []
-
     for root, dirs, files in os.walk(project_path):
-
         dirs[:] = [
             directory
             for directory in dirs
             if directory not in IGNORED_DIRS
         ]
-
         for file in files:
+            if not file.endswith(".py"):
+                continue
 
-            if file.endswith(".py"):
+            filepath = os.path.join(root, file)
 
-                filepath = os.path.join(root, file)
-
-                with open(filepath, "r", encoding="utf-8") as f:
-                    code = f.read()
-
+            with open(filepath, "r", encoding="utf-8") as f:
+                code = f.read()
+            try:
                 tree = ast.parse(code)
 
-                for node in ast.walk(tree):
+            except SyntaxError:
+                continue
 
-                    if isinstance(node, ast.FunctionDef):
+            for node in ast.walk(tree):
+                # Function definition
+                if isinstance(node, ast.FunctionDef):
 
-                        if node.name == function_name:
+                    if node.name == function_name:
+
+                        results.append({
+                            "type": "DEFINITION",
+                            "file": filepath,
+                            "line": node.lineno,
+                            "code": f"def {node.name}"
+                        })
+
+                # Function call
+                elif isinstance(node, ast.Call):
+
+                    if isinstance(node.func, ast.Name):
+
+                        if node.func.id == function_name:
 
                             results.append({
-                                "type": "DEFINITION",
+                                "type": "CALL",
                                 "file": filepath,
                                 "line": node.lineno,
-                                "code": f"def {node.name}"
+                                "code": f"{node.func.id}()"
                             })
-                    elif isinstance(node, ast.Call):
 
-                        if isinstance(node.func, ast.Name):
+                # import x
+                elif isinstance(node, ast.Import):
 
-                            if node.func.id == function_name:
+                    for alias in node.names:
 
-                                results.append({
-                                    "type": "CALL",
-                                    "file": filepath,
-                                    "line": node.lineno,
-                                    "code": f"{node.func.id}()"
-                                })
-                    elif isinstance(node, ast.ImportFrom):
+                        if alias.name == function_name:
 
-                        for alias in node.names:
+                            results.append({
+                                "type": "IMPORT",
+                                "file": filepath,
+                                "line": node.lineno,
+                                "code": f"import {alias.name}"
+                            })
 
-                            if alias.name == function_name:
+                # from x import function
+                elif isinstance(node, ast.ImportFrom):
 
-                                results.append({
-                                    "type": "IMPORT",
-                                    "file": filepath,
-                                    "line": node.lineno,
-                                    "code": f"import {alias.name}"
-                                })
+                    for alias in node.names:
 
+                        if alias.name == function_name:
+
+                            results.append({
+                                "type": "IMPORT",
+                                "file": filepath,
+                                "line": node.lineno,
+                                "code": f"from {node.module} import {alias.name}"
+                            })
     return results
 
 project_path = input("Enter project path: ")
