@@ -54,6 +54,18 @@ def search_code(project_path, function_name):
                                     "line": node.lineno,
                                     "code": f"{node.func.id}()"
                                 })
+                    elif isinstance(node, ast.ImportFrom):
+
+                        for alias in node.names:
+
+                            if alias.name == function_name:
+
+                                results.append({
+                                    "type": "IMPORT",
+                                    "file": filepath,
+                                    "line": node.lineno,
+                                    "code": f"import {alias.name}"
+                                })
 
     return results
 
