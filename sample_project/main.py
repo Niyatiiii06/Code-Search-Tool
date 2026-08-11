@@ -7,3 +7,12 @@ def run():
 
 
 run()
+class Client:
+
+    def search_web(self, query):
+        return query
+
+
+client = Client()
+
+client.search_web("AI")
