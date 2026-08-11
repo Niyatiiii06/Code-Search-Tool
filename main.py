@@ -39,7 +39,6 @@ def search_code(project_path, function_name):
                 continue
 
             filepath = os.path.join(root, file)
-
             with open(filepath, "r", encoding="utf-8") as f:
                 code = f.read()
             try:
@@ -49,7 +48,6 @@ def search_code(project_path, function_name):
                 continue
 
             calls = find_calls(tree, function_name)
-
             for call in calls:
 
                 results.append({
@@ -62,7 +60,6 @@ def search_code(project_path, function_name):
             for node in ast.walk(tree):
                 # Function definition
                 if isinstance(node, ast.FunctionDef):
-
                     if node.name == function_name:
 
                         results.append({
@@ -71,12 +68,10 @@ def search_code(project_path, function_name):
                             "line": node.lineno,
                             "code": f"def {node.name}"
                         })
-
                 # Function call
                 elif isinstance(node, ast.Call):
-
+                    # search_web()
                     if isinstance(node.func, ast.Name):
-
                         if node.func.id == function_name:
 
                             results.append({
@@ -85,12 +80,20 @@ def search_code(project_path, function_name):
                                 "line": node.lineno,
                                 "code": f"{node.func.id}()"
                             })
+                    # utils.search_web()
+                    elif isinstance(node.func, ast.Attribute):
+                        if node.func.attr == function_name:
+
+                            results.append({
+                                "type": "CALL",
+                                "file": filepath,
+                                "line": node.lineno,
+                                "code": f"{node.func.attr}()"
+                            })
 
                 # import x
                 elif isinstance(node, ast.Import):
-
                     for alias in node.names:
-
                         if alias.name == function_name:
 
                             results.append({
@@ -102,9 +105,7 @@ def search_code(project_path, function_name):
 
                 # from x import function
                 elif isinstance(node, ast.ImportFrom):
-
                     for alias in node.names:
-
                         if alias.name == function_name:
 
                             results.append({
