@@ -1,9 +1,20 @@
 import os
-
+IGNORED_DIRS = {
+    ".git",
+    ".venv",
+    "venv",
+    "__pycache__",
+    "node_modules"
+}
 
 def search_code(project_path, function_name):
     results = []
     for root, dirs, files in os.walk(project_path):
+        dirs[:] = [
+            directory
+            for directory in dirs
+            if directory not in IGNORED_DIRS
+        ]
         for file in files:
             if file.endswith(".py"):
                 filepath = os.path.join(root, file)
@@ -40,7 +51,7 @@ def search_code(project_path, function_name):
     return results
 
 
-project_path = "sample_project"
+project_path = input("Enter project path: ")
 function_name = input("Enter function name: ")
 results = search_code(project_path, function_name)
 
