@@ -1,7 +1,7 @@
 import os
 
 project_path = "sample_project"
-function_name= 'search_web'
+function_name = input("Enter function name: ")
 
 for root, dirs, files in os.walk(project_path):
     for file in files:
